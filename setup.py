@@ -5,7 +5,7 @@ setup(
     name='console_bot',
     version='1.0.1',
     description='Консольний бот',
-    url='https://github.com/TT1410/console-bot&classes',
+    url='https://github.com/TT1410/console-bot-classes',
     author='Plaksii Taras',
     author_email='test@gmail.com',
     license='MIT',
