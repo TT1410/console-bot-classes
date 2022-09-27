@@ -36,10 +36,7 @@ def change_user(user: User) -> None:
     if not ADDRESS_BOOK.get(user.name):
         raise KeyError(user.name)
 
-    phone = Phone(user.phone)
-
-    if phone not in ADDRESS_BOOK[user.name].phones:
-        ADDRESS_BOOK[user.name].phones.append(phone)
+    ADDRESS_BOOK[user.name].add_phone(user.phone)
 
 
 @input_error
