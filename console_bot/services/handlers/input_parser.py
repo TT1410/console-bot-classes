@@ -1,5 +1,5 @@
 from console_bot.services.decorators import input_error
-from console_bot.services.types import User
+from console_bot.services.types import Command
 from .register_handlers import DICT_FUNC
 
 
@@ -36,10 +36,10 @@ def text_parsing(text: str) -> tuple:
 
     args = args + [''] if (len(args) < 2) and (len(args) == data['quantity_arg']) else args
 
-    user: User = data['arguments']
+    _command: Command = data['arguments']
 
     try:
-        _args = user(*args)
+        _args = _command(*args)
     except TypeError:
         raise ValueError("Please tell me your name and phone number, separated by a space")
 

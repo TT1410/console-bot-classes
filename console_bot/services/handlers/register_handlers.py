@@ -1,9 +1,9 @@
-from console_bot.services.types import User
+from console_bot.services.types import Command
 
 DICT_FUNC = {}
 
 
-def register_message_handler(func, commands: str | list, arguments: User = None, quantity_arg: int = 0):
+def register_message_handler(func, commands: str | list, arguments: Command = None, quantity_arg: int = 0):
     if isinstance(commands, str):
         commands = [commands]
 
