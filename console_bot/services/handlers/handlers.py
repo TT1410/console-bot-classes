@@ -1,92 +1,90 @@
+from typing import Optional
+
 from console_bot.services.decorators import input_error
-from console_bot.services.types import Command, ADDRESS_BOOK, Record, Phone
+from console_bot.services.types import Command
+from console_bot.services.utils import ADDRESS_BOOK, Record
+from .register_handlers import DICT_FUNC
 
 
 def hello() -> str:
     """
     Отвечает в консоль "How can I help you?"
-    :return:
     """
-    return "How can I help you?"
+    return "\nHow can I help you?"
 
 
 @input_error
 def add_user(command: Command) -> str:
     """
-    По этой команде бот сохраняет в памяти (в словаре например) новый контакт.
+    По этой команде бот сохраняет в памяти новый контакт.
     Пользователь вводит команду add, имя и номер телефона, обязательно через пробел.
-    :param command:
-    :return:
+    Пример команды: add Taras 0961233214
     """
     if ADDRESS_BOOK.get(command.username):
-        raise ValueError(f"Contact with the name {command.username} already exists. "
+        raise ValueError(f"\nContact with the name {command.username} already exists. "
                          f"To add a new number to an existing contact, use the <change> command.")
 
     ADDRESS_BOOK.add_record(Record(command.username, command.value))
 
-    return f"Successfully created a new contact '{command.username}'"
+    return f"\nSuccessfully created a new contact '{command.username}'"
 
 
 @input_error
 def add_phone(command: Command) -> str:
     """
     По этой команде бот сохраняет в памяти новый номер телефона для существующего контакта.
-    Пользователь вводит команду change, имя и номер телефона, обязательно через пробел.
-    :param command:
-    :return:
+    Пользователь вводит команду add-phone, имя и новый номер телефона, обязательно через пробел.
+    Пример команды: add-phone Taras 0961233032
     """
     if not ADDRESS_BOOK.get(command.username):
         raise KeyError(command.username)
 
     phone = ADDRESS_BOOK[command.username].add_phone(command.value)
 
-    return f"Contact phone number {command.username} '{phone.value}' successfully added"
+    return f"\nContact phone number {command.username} '{phone.value}' successfully added"
 
 
 @input_error
-def change_phone(command: Command) -> str:
+def change_phone(command: Command) -> Optional[str]:
     """
     По этой команде бот заменяет старый номер телефона новым для существующего контакта.
     Пользователь вводит команду change-phone, имя и новый номер телефона, обязательно через пробел.
     Далее пользователю будет предложено выбрать из списка номер, который необходимо заменить новым.
-    :param command:
-    :return:
+    Пример команды: change-phone Taras 0961233789
     """
-    if not ADDRESS_BOOK.get(command.username):
-        raise KeyError(command.username)
-
-    print(user_phone(command))
-
     while True:
+        print(user_phone(command))
+
         try:
-            index = int(input("Enter the index number of the phone from the list you want to replace\n"
-                              "enter 0 to cancel: "))
-        except TypeError:
+            index = int(input("Enter the index number of the phone from the list you want to replace: "))
+        except ValueError:
+            print("\nChoose a number from the list!")
+            print("\n(Enter 0 to cancel)")
             continue
+
+        if index == 0:
+            return
+
+        try:
+            old_phone, new_phone = ADDRESS_BOOK[command.username].replace_phone(index, command.value)
+        except IndexError:
+            print("\nChoose a number from the list!")
+            print("\n(Enter 0 to cancel)")
         else:
             break
 
-    if not index:
-        return
-
-    old_phone, new_phone = ADDRESS_BOOK[command.username].replace_phone(index, command.value)
-
-    return f"Contact phone number {command.username} '{old_phone.value}' " \
+    return f"\nContact phone number {command.username} '{old_phone.value}' " \
            f"has been successfully replaced by '{new_phone.value}'"
 
 
 @input_error
-def remove_phone(command: Command) -> str:
+def remove_phone(command: Command) -> Optional[str]:
     """
     По этой команде бот удаляет номер телефона существующего контакта.
-    Пользователь вводит команду change, имя и номер телефона, который необходимо удалить обязательно через пробел.
+    Пользователь вводит команду change, имя и номер телефона, который необходимо удалить, обязательно через пробел.
     Пользователь может не вводить номер телефона, тогда ему будет предложено выбрать номер из списка.
-    :param command:
-    :return:
+    Пример команды: remove-phone Taras 0961233214
     """
-    if not ADDRESS_BOOK.get(command.username):
-        raise KeyError(command.username)
-
     index = None
 
     if command.value:
@@ -98,25 +96,33 @@ def remove_phone(command: Command) -> str:
                     index = num
                     break
 
-        except TypeError:
+        except ValueError:
             pass
 
-    while not index:
-        print(user_phone(command))
+    while True:
+        if not index:
+            print(user_phone(command))
+
+            try:
+                index = int(input("Enter the index number of the phone from the list you want to replace: "))
+            except ValueError:
+                print("\nChoose a number from the list!")
+                print("\n(Enter 0 to cancel)")
+                continue
+
+        if index == 0:
+            return
 
         try:
-            index = int(input("Enter the index number of the phone from the list you want to replace: "))
-        except TypeError:
-            continue
+            old_phone = ADDRESS_BOOK[command.username].remove_phone(index)
+        except IndexError:
+            print("\nChoose a number from the list!")
+            print("\n(Enter 0 to cancel)")
+            index = None
         else:
             break
 
-    if index == 0:
-        return
-
-    old_phone = ADDRESS_BOOK[command.username].remove_phone(1)
-
-    return f"Contact phone number {command.username} '{old_phone.value}' deleted successfully"
+    return f"\nContact phone number {command.username} '{old_phone.value}' deleted successfully"
 
 
 @input_error
@@ -124,17 +130,16 @@ def user_phone(command: Command) -> str:
     """
     По этой команде бот выводит в консоль номера телефонов для указанного контакта.
     Пользователь вводит команду phone и имя контакта, чьи номера нужно показать, обязательно через пробел.
-    :param command:
-    :return:
+    Пример команды: phone Taras
     """
     return (f"Phone numbers of {command.username}\n\t" +
             "\n\t".join([f"{num}. {x.value}" for num, x in enumerate(ADDRESS_BOOK[command.username].phones, 1)]))
 
 
+@input_error
 def show_all_users() -> str:
     """
     По этой команде бот выводит все сохраненные контакты с номерами телефонов в консоль.
-    :return:
     """
     format_users = []
 
@@ -146,13 +151,25 @@ def show_all_users() -> str:
 
 
 def help_command() -> str:
-    return
+    """
+    Выводит список доступных команд
+    """
+    bot_commands = {}
+
+    for key, value in DICT_FUNC.items():
+        _function = value["function"] if isinstance(value, dict) else value
+
+        if _function in bot_commands:
+            bot_commands[_function] += f", {key}"
+        else:
+            bot_commands[_function] = key
+
+    return '\n'.join([s for s in [cmd + func.__doc__ for func, cmd in bot_commands.items()]])
 
 
 def close_bot() -> str:
     """
     По любой из команд: "good bye", "close", "exit",
     бот завершает свою роботу после того, как выведет в консоль "Good bye!".
-    :return:
     """
     return "Good bye!"

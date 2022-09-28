@@ -15,7 +15,8 @@ def search_arguments(text: str):
     data = DICT_FUNC.get(command.lower())
 
     if not data:
-        raise ValueError(f"Sorry, but there is no '{command}' command")
+        raise ValueError(f"Sorry, but there is no '{command}' command\n"
+                         f"Type 'help' command to see all available commands")
 
     return data, args
 

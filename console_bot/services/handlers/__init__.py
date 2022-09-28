@@ -9,7 +9,8 @@ from .handlers import (
     remove_phone,
     user_phone,
     show_all_users,
-    close_bot
+    close_bot,
+    help_command
 )
 
 
@@ -26,3 +27,4 @@ register_message_handler(remove_phone, 'remove-phone', Command, 1)
 register_message_handler(user_phone, 'phone', Command, 1)
 register_message_handler(show_all_users, 'show all')
 register_message_handler(close_bot, ["good bye", "close", "exit"])
+register_message_handler(help_command, "help")

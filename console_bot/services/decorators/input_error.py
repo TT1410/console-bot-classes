@@ -1,5 +1,8 @@
+from functools import wraps
+
 
 def input_error(func):
+    @wraps(func)
     def inner(*args, **kwargs) -> None:
         try:
             return func(*args, **kwargs)
